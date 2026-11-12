@@ -30,7 +30,7 @@ ADMIN_ID = 6825271410      # Ganti dengan Telegram User ID pribadi Kakak (untuk 
 PUBLIC_GROUP_ID = -1004497550295  # Ganti dengan ID Grup Publik tempat pesan "NEW PENDING WITHDRAWAL" muncul
 ADMIN_USERNAME = "@daisukeshinomiya"
 
-QR_IMAGE_URL = "https://ibb.co.com/84bGYKn4"
+QR_IMAGE_URL = "https://ibb.co.com/JWLJbQnK"
 
 # Database Simulasi Sementara
 users_db = {}
