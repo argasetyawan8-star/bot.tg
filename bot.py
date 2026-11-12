@@ -27,7 +27,7 @@ TOKEN = "9186649990:AAFee8sQUXFu_NMc9PyT6N5xW7CeRizLHKk"
 
 # 🔑 KONFIGURASI ID
 ADMIN_ID = 6825271410      # Ganti dengan Telegram User ID pribadi Kakak (untuk tombol Approve/Reject & Notif Refresh)
-PUBLIC_GROUP_ID = -1004497550295  # Ganti dengan ID Grup Publik tempat pesan "NEW PENDING WITHDRAWAL" muncul
+CHANNEL_ID = -1004367716483  # Ganti dengan ID Grup Publik tempat pesan "NEW PENDING WITHDRAWAL" muncul
 ADMIN_USERNAME = "@daisukeshinomiya"
 
 QR_IMAGE_URL = "https://ibb.co.com/JWLJbQnK"
@@ -300,7 +300,7 @@ async def handle_text_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
             # 2. Kirim otomatis ke GRUP PUBLIK (bisa dilihat member lain)
             await context.bot.send_message(
-                chat_id=PUBLIC_GROUP_ID,
+                chat_id=CHANNEL_ID,
                 text=public_group_report,
                 parse_mode="Markdown"
             )
