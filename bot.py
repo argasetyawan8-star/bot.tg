@@ -30,6 +30,8 @@ ADMIN_ID = 6825271410      # Ganti dengan Telegram User ID pribadi Kakak (untuk 
 PUBLIC_GROUP_ID = -1004497550295  # Ganti dengan ID Grup Publik tempat pesan "NEW PENDING WITHDRAWAL" muncul
 ADMIN_USERNAME = "@daisukeshinomiya"
 
+QR_IMAGE_URL = "https://ibb.co.com/84bGYKn4"
+
 # Database Simulasi Sementara
 users_db = {}
 pending_withdrawals = {}
@@ -258,13 +260,13 @@ async def handle_text_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 ]
             ]
             await update.message.reply_photo(
-                photo="https://via.placeholder.com/300.png?text=QRIS+Admin+Fee+8%25",
+                photo=QR_IMAGE_URL,
                 caption=qr_caption,
                 reply_markup=InlineKeyboardMarkup(keyboard),
                 parse_mode="Markdown",
             )
 
-            # Persiapan Data WD
+            # Persiapan Data WD 
             global wd_counter
             wd_counter += 1
             current_wd_id = f"#{wd_counter}"
